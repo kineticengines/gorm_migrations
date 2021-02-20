@@ -5,17 +5,16 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 	"text/template"
 
-	"github.com/kineticengines/gorm-migrations/models"
+	"github.com/kineticengines/gorm-migrations/pkg/definitions"
 	"github.com/urfave/cli/v2"
 )
 
 // IntializeCmd ...
 var IntializeCmd = &cli.Command{
-	Name:  models.IntializeCmd,
-	Usage: models.IntializeCmdUsage,
+	Name:  definitions.IntializeCmd,
+	Usage: definitions.IntializeCmdUsage,
 	Action: func(c *cli.Context) error {
 		return initialize()
 	},
@@ -23,8 +22,7 @@ var IntializeCmd = &cli.Command{
 
 var initTemplate = template.Must(template.New("name").Parse(
 	`# Where all migrations files will be located
-migrations:
-  - migrations/*.gormgx
+migrations: migrations/*.gormgx
 
 # Where your gorm models are located
 models:
@@ -43,16 +41,7 @@ func initialize() error {
 	if !exists {
 		return createGormgxYamlFile()
 	}
-	return models.ErrGormgxYamlExists
-}
-
-func gormgxFilePath() (*string, error) {
-	path, err := os.Getwd()
-	if err != nil {
-		return nil, models.ErrUnableToGetWorkingDirectory
-	}
-	file := filepath.Join(path, "gormgx.yaml")
-	return &file, nil
+	return definitions.ErrGormgxYamlExists
 }
 
 // checkIfInitialized checks for the presence of gormgx.yaml file
@@ -86,5 +75,7 @@ func createGormgxYamlFile() error {
 	if err := ioutil.WriteFile(*path, buf.Bytes(), 0644); err != nil {
 		return fmt.Errorf("unable to write gormgx file: " + err.Error())
 	}
+
+	fmt.Println(definitions.AfterIntializeMessage)
 	return nil
 }
