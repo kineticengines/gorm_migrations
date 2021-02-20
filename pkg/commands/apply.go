@@ -1,7 +1,7 @@
 package commands
 
 import (
-	"github.com/kineticengines/gorm-migrations/models"
+	models "github.com/kineticengines/gorm-migrations/pkg/definitions"
 	"github.com/urfave/cli/v2"
 )
 
