@@ -1,6 +1,8 @@
 package definitions
 
-import "github.com/kyokomi/emoji"
+import (
+	"github.com/kyokomi/emoji"
+)
 
 const (
 	AppName                 = "Gorm Migrations [gormgx]"
@@ -19,6 +21,7 @@ const (
 	RevertCmd         = "revert"
 	RevertToCmd       = "revert-to"
 	ShowMigrationsCmd = "show-migrations"
+	VersionCmd        = "version"
 )
 
 // commands usage descriptions
@@ -29,6 +32,7 @@ const (
 	RevertCmdUsage         = "undoes the previously performed migration"
 	RevertToCmdUsage       = "reverts migrations to a specific migration"
 	ShowMigrationsCmdUsage = "shows all migrations"
+	VersionCmdUsage        = "prints the version number"
 )
 
 // flags
@@ -55,4 +59,10 @@ const (
 // response message
 var (
 	AfterIntializeMessage = emoji.Sprint(`:beer: Hurray!!! Gormgx has been intialized. Check "gormgx.yaml" file and amend it to your needs. Remember not to remove it`)
+)
+
+// packages to be imported by custom lookup importer
+const (
+	GormPackage = "github.com/jinzhu/gorm"
+	TimePackage = "time"
 )
