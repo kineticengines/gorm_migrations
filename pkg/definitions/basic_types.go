@@ -3,6 +3,7 @@ package definitions
 // BasicType ...
 type BasicType string
 
+// Basic types
 const (
 	Bool    BasicType = "bool"
 	Int     BasicType = "int"

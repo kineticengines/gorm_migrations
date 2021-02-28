@@ -7,9 +7,12 @@ import (
 	"go/parser"
 	"go/token"
 	"go/types"
+	"io"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/kineticengines/gorm-migrations/pkg/definitions"
 	log "github.com/sirupsen/logrus"
@@ -29,7 +32,7 @@ func gormgxFilePath() (*string, error) {
 func readYamlToconfig() (*definitions.Config, error) {
 	yamlPath, err := gormgxFilePath()
 	if err != nil {
-		return nil, definitions.ErrFailedToLoadGormgxFile
+		return nil, definitions.ErrFailedToFetchGormgxPath
 	}
 	content, err := ioutil.ReadFile(*yamlPath)
 	if err != nil {
@@ -107,12 +110,11 @@ func readFileSet(path string) (*types.Package, error) {
 	if err != nil {
 		return nil, fmt.Errorf("parse error %w", err)
 	}
-	conf := types.Config{Importer: importer.Default()}
+	conf := types.Config{Importer: importer.ForCompiler(fset, "gc", customImporterLookup)}
 	pkg, err := conf.Check("types", fset, []*ast.File{f}, nil)
 	if err != nil {
 		return nil, fmt.Errorf("type check  error %w", err)
 	}
-
 	return pkg, nil
 }
 
@@ -136,8 +138,6 @@ func readInterfaceFile() []*types.Named {
 
 func analyzePkg(pkg *types.Package, verbose bool) error {
 	printVerbose(verbose, log.InfoLevel, "Analyzing package scopes")
-	scope := pkg.Scope()
-	printVerbose(verbose, log.InfoLevel, fmt.Sprintf("Analyzing package scopes : scope size: %v", scope.Len()))
 
 	// Find all named types at package level.
 	var allNamed []*types.Named
@@ -184,10 +184,7 @@ func extractFieldsFromStruct(v *types.Named) map[string]definitions.FieldMeta {
 func computeBasicType(u types.Type) definitions.BasicType {
 	switch x := u.(type) {
 	case *types.Struct:
-		if x.Field(0).Name() == "wall" || x.Field(0).Name() == "ext" || x.Field(0).Name() == "loc" {
-			// todo
-		}
-
+		// todo
 	case *types.Pointer:
 		elem := x.Underlying().(*types.Pointer).Elem()
 		return computeBasicType(elem)
@@ -202,4 +199,42 @@ func computeBasicType(u types.Type) definitions.BasicType {
 		log.Infoln(x)
 	}
 	return definitions.Nil
+}
+
+// deprecated
+func customImporterLookup(path string) (io.ReadCloser, error) {
+	if path == definitions.TimePackage {
+		out, err := exec.Command("go", "list", "-f={{context.Compiler}}:{{.Target}}", definitions.TimePackage).CombinedOutput()
+		if err != nil {
+			log.Fatalf("go list %s: %v\n%s", path, err, out)
+		}
+		target := strings.TrimSpace(string(out))
+		i := strings.Index(target, ":")
+		_, target = target[:i], target[i+1:]
+		if !strings.HasSuffix(target, ".a") {
+			log.Fatalf("unexpected package %s target %q (not *.a)", definitions.TimePackage, target)
+		}
+
+		f, err := os.Open(target)
+		if err != nil {
+			log.Fatal(err)
+		}
+		return f, nil
+
+	}
+	if path == definitions.GormPackage {
+		out, err := exec.Command("go", "list", "-m", "-f={{.Dir}}", definitions.GormPackage).CombinedOutput()
+		if err != nil {
+			log.Fatalf("go list %s: %v\n%s", definitions.TimePackage, err, out)
+		}
+		target := strings.TrimSpace(string(out))
+		target = fmt.Sprintf("%s/model.go", target)
+		fmt.Println(target)
+		f, err := os.Open(target)
+		if err != nil {
+			log.Fatal(err)
+		}
+		return f, nil
+	}
+	return nil, nil
 }

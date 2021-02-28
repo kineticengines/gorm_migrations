@@ -59,10 +59,16 @@ func (m *MgxMaker) Migrate() error {
 	if err := m.hasError(); err != nil {
 		return err
 	}
-	_, err := m.loadYaml().setIntent()
-	_, err = m.buildIntialIntent()
-	_, err = m.buildCreateIntent()
-	return err
+	if _, err := m.loadYaml().setIntent(); err != nil {
+		return err
+	}
+	if _, err := m.buildIntialIntent(); err != nil {
+		return err
+	}
+	if _, err := m.buildCreateIntent(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (m *MgxMaker) hasError() error {
@@ -85,10 +91,11 @@ func (m *MgxMaker) loadYaml() MakeMigration {
 }
 
 func (m *MgxMaker) setIntent() (MakeMigration, error) {
-	printVerbose(m.verbose, log.InfoLevel, "Setting intent")
 	if err := m.hasError(); err != nil {
 		return nil, err
 	}
+
+	printVerbose(m.verbose, log.InfoLevel, "Setting intent")
 	if !checkIntialMIgrationExists() {
 		m.intent = definitions.IntialIntent
 		return m, nil
