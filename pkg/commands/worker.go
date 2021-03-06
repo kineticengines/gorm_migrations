@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/kineticengines/gorm-migrations/pkg/definitions"
 	log "github.com/sirupsen/logrus"
@@ -145,7 +146,7 @@ func analyzePkg(pkg *types.Package, verbose bool) error {
 		if types.AssignableTo(types.NewPointer(T), allNamedInteraface[0]) {
 			validObjects = append(validObjects, T)
 		} else {
-			printVerbose(verbose, log.WarnLevel, fmt.Sprintf("object %v does not satify interface GormModel", T))
+			printVerbose(verbose, log.WarnLevel, fmt.Sprintf("Skipping object [%v] ; it does not satify interface GormModel", splitTypedNameToObjectName(T)))
 		}
 	}
 
@@ -165,67 +166,6 @@ func nameTypeFieldsMeta(v *types.Named) *TableTree {
 	return tree
 }
 
-// func extractFieldsFromStruct(u *types.Struct) map[string]definitions.FieldMeta {
-// 	fieldsMap := make(map[string]definitions.FieldMeta)
-// 	for i := 0; i < u.NumFields(); i++ {
-// 		fieldName := u.Field(i).Name()
-// 		meta := definitions.FieldMeta{}
-// 		meta.Tag = u.Tag(i)
-// 		ft := computeBasicType(u.Field(i).Type().Underlying())
-// 		// if ft == definitions.Nil {
-// 		// 	log.Panicf("%v; got %T", definitions.ErrNilType)
-// 		// }
-// 		meta.FieldType = ft
-// 		fieldsMap[fieldName] = meta
-// 	}
-// 	return fieldsMap
-// }
-
-// func computeBasicType(u types.Type) definitions.BasicType {
-// 	switch x := u.(type) {
-// 	case *types.Struct:
-// 		// todo
-// 		log.Infof("type struct %v", x)
-// 	case *types.Pointer:
-// 		elem := x.Underlying().(*types.Pointer).Elem()
-// 		return computeBasicType(elem)
-// 	case *types.Basic:
-// 		switch x.Kind() {
-// 		case types.Int:
-// 			return definitions.Int
-// 		case types.Int8:
-// 			return definitions.Int8
-// 		case types.Int16:
-// 			return definitions.Int16
-// 		case types.Int32:
-// 			return definitions.Int32
-// 		case types.Int64:
-// 			return definitions.Int64
-// 		case types.Uint:
-// 			return definitions.Uint
-// 		case types.Uint8:
-// 			return definitions.Uint8
-// 		case types.Uint16:
-// 			return definitions.Uint16
-// 		case types.Uint32:
-// 			return definitions.Uint32
-// 		case types.Uint64:
-// 			return definitions.Uint64
-// 		case types.Float32:
-// 			return definitions.Float32
-// 		case types.Float64:
-// 			return definitions.Float64
-// 		case types.Complex64:
-// 			return definitions.Complex64
-// 		case types.Complex128:
-// 			return definitions.Complex128
-// 		case types.String:
-// 			return definitions.String
-// 		case types.Bool:
-// 			return definitions.Bool
-// 		}
-// 	default:
-// 		log.Infof("basiv type %v", x)
-// 	}
-// 	return definitions.Nil
-// }
+func splitTypedNameToObjectName(t *types.Named) string {
+	return strings.Split(t.String(), ".")[1]
+}

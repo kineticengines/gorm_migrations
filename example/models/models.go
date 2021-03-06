@@ -7,11 +7,11 @@ import (
 	"gorm.io/gorm"
 )
 
-// // Product ...
-// type Product struct {
-// 	Code  string
-// 	Price uint
-// }
+// Product ...
+type Product struct {
+	Code  string
+	Price uint
+}
 
 // // User ...
 // type User struct {

@@ -62,7 +62,7 @@ func createGormgxYamlFile() error {
 	if err != nil {
 		return err
 	}
-	_, err = os.OpenFile(*path, os.O_RDWR|os.O_CREATE, 0755)
+	_, err = os.OpenFile(*path, os.O_RDWR|os.O_CREATE, 0600)
 	if err != nil {
 		return err
 	}
@@ -72,7 +72,7 @@ func createGormgxYamlFile() error {
 		return err
 	}
 
-	if err := ioutil.WriteFile(*path, buf.Bytes(), 0644); err != nil {
+	if err := ioutil.WriteFile(*path, buf.Bytes(), 0600); err != nil {
 		return fmt.Errorf("unable to write gormgx file: " + err.Error())
 	}
 

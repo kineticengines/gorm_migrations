@@ -39,13 +39,12 @@ type MakeMigration interface {
 
 // MgxMaker ...
 type MgxMaker struct {
-	modelsPath     string
-	verbose        bool
-	gormgxFilePath string
-	errorsCache    *sync.Map
-	config         *definitions.Config
-	intent         definitions.Intent
-	modelsPkgs     *[]*types.Package
+	modelsPath  string
+	verbose     bool
+	errorsCache *sync.Map
+	config      *definitions.Config
+	intent      definitions.Intent
+	modelsPkgs  *[]*types.Package
 }
 
 // NewMgxMaker ...
@@ -118,7 +117,7 @@ func (m *MgxMaker) buildIntialIntent() (MakeMigration, error) {
 		// todo: use sync.WaitGroup to loop
 		pkgs := *m.modelsPkgs
 		pkg := pkgs[0]
-		analyzePkg(pkg, m.verbose)
+		_ = analyzePkg(pkg, m.verbose)
 		return m, nil
 	}
 	return m, nil

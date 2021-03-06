@@ -35,7 +35,7 @@ func main() {
 	}
 
 	// Migrate the schema
-	db.AutoMigrate(&Accounts{})
+	_ = db.AutoMigrate(&Accounts{})
 
 	// Create
 	guid := "0afca2aa-7de1-11eb-8398-434ca8dedd68"
