@@ -22,12 +22,12 @@ func TestSimpleTableTree_1(t *testing.T) {
 func TestSimpleTableTree_2(t *testing.T) {
 	dir, _ := os.Getwd()
 	path := strings.Split(dir, "/commands")[0]
+	fmt.Println(dir)
 	path = filepath.Join(path, "definitions/testdata/simple_account.go")
+	fmt.Println(path)
 	pkg, err := commands.ReadModelsFromPath(path)
 	require.Nil(t, err)
 	require.NotNil(t, pkg)
-
-	fmt.Println(pkg.Scope().Names())
 
 	// Find all named types on file level.
 	var allNamed []*types.Named

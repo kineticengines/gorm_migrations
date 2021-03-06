@@ -2,7 +2,6 @@ package commands
 
 import (
 	"container/list"
-	"fmt"
 	"go/types"
 
 	"github.com/kineticengines/gorm-migrations/pkg/definitions"
@@ -21,7 +20,6 @@ func (t *TableTree) AddNodes(u *types.Struct) {
 }
 
 func (t *TableTree) addNodesHelper(u *types.Struct, numOfFields int, index int) {
-	fmt.Printf("current index: %d of field %v \n", index, u.Field(index))
 	fieldType := t.computeBasicType(u.Field(index).Type().Underlying())
 	if fieldType != definitions.Compound {
 		t.LeftNode = &TableTree{Value: &definitions.FieldMeta{FieldName: u.Field(index).Name(),
