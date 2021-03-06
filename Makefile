@@ -2,7 +2,9 @@ SHELL := /bin/bash
 dir=$(shell echo $(CURDIR) )
 home=$(shell echo $(HOME) )
 dt=$(shell echo $(date))
-version=v1.0.2
+version=v0.0.1
+
+.PHONY: install-ci-deps install-packages checker run-tests build install
 
 install-ci-deps:
 	go install honnef.co/go/tools/cmd/staticcheck && \

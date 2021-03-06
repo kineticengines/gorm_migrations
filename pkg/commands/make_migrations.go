@@ -45,11 +45,13 @@ type MgxMaker struct {
 	config      *definitions.Config
 	intent      definitions.Intent
 	modelsPkgs  *[]*types.Package
+	tables      map[string]*TableTree
 }
 
 // NewMgxMaker ...
 func NewMgxMaker(path string, verbose bool) MakeMigration {
-	return &MgxMaker{modelsPath: path, verbose: verbose, errorsCache: &sync.Map{}, modelsPkgs: &[]*types.Package{}}
+	return &MgxMaker{modelsPath: path, verbose: verbose, errorsCache: &sync.Map{},
+		modelsPkgs: &[]*types.Package{}, tables: map[string]*TableTree{}}
 }
 
 // Migrate ...
@@ -114,10 +116,27 @@ func (m *MgxMaker) buildIntialIntent() (MakeMigration, error) {
 			return nil, err
 		}
 		// analyze package
-		// todo: use sync.WaitGroup to loop
 		pkgs := *m.modelsPkgs
-		pkg := pkgs[0]
-		_ = analyzePkg(pkg, m.verbose)
+		var wg sync.WaitGroup
+		var mutex = &sync.Mutex{}
+
+		for _, pkg := range pkgs {
+			wg.Add(1)
+			go func(w *sync.WaitGroup, mtx *sync.Mutex, pkg *types.Package, mgx *MgxMaker) {
+				defer w.Done()
+				tbl := analyzePkg(pkg, mgx.verbose)
+				for k, v := range tbl {
+					mtx.Lock()
+					mgx.tables[k] = v
+					mtx.Unlock()
+				}
+			}(&wg, mutex, pkg, m)
+		}
+
+		wg.Wait()
+
+		// todo(dexter) : implement creating migration files
+
 		return m, nil
 	}
 	return m, nil

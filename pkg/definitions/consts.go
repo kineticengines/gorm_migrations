@@ -4,6 +4,7 @@ import (
 	"github.com/kyokomi/emoji"
 )
 
+// context constants
 const (
 	AppName                 = "Gorm Migrations [gormgx]"
 	AppDescription          = `Gorm Migrations CLI utility manages SQL migrations for gorm. It implements the same API as Django migrations, so you should be at home if coming from Django.`
@@ -59,10 +60,4 @@ const (
 // response message
 var (
 	AfterIntializeMessage = emoji.Sprint(`:beer: Hurray!!! Gormgx has been intialized. Check "gormgx.yaml" file and amend it to your needs. Remember not to remove it`)
-)
-
-// packages to be imported by custom lookup importer
-const (
-	GormPackage = "github.com/jinzhu/gorm"
-	TimePackage = "time"
 )
