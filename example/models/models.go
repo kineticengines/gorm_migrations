@@ -3,8 +3,8 @@ package models
 import (
 	"time"
 
-	"github.com/jinzhu/gorm"
 	"github.com/lib/pq"
+	"gorm.io/gorm"
 )
 
 // // Product ...
@@ -35,8 +35,8 @@ import (
 // acoount
 type Accounts struct {
 	gorm.Model
-	// GUID              *string   `gorm:"not null;unique;column:guid"`
-	// FirstName         *string   `gorm:"not null;column:first_name"`
+	GUID      *string `gorm:"not null;unique;column:guid"`
+	FirstName *string `gorm:"not null;column:first_name"`
 	// LastName          *string   `gorm:"not null;column:last_name"`
 	// OrganisationID    *string   `gorm:"not null;column:organisation_id"`
 	// IsAccountBillable *bool     `gorm:"default:true;column:is_account_billable"`
