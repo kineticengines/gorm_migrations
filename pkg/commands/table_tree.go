@@ -3,15 +3,16 @@ package commands
 import (
 	"container/list"
 	"go/types"
+	"strings"
 
 	"github.com/kineticengines/gorm-migrations/pkg/definitions"
 )
 
 // TableTree tracks the columns of an SQL table
 type TableTree struct {
-	LeftNode  *TableTree // basic types
-	RightNode *TableTree // compound types
-	Value     *definitions.FieldMeta
+	ChildNode *TableTree
+
+	Value *definitions.FieldMeta
 }
 
 // AddNodes adds a node to the table tree by checking its type
@@ -21,18 +22,48 @@ func (t *TableTree) AddNodes(u *types.Struct) {
 
 func (t *TableTree) addNodesHelper(u *types.Struct, numOfFields int, index int) {
 	fieldType := t.computeBasicType(u.Field(index).Type().Underlying())
-	if fieldType != definitions.Compound {
-		t.LeftNode = &TableTree{Value: &definitions.FieldMeta{FieldName: u.Field(index).Name(),
+	switch fieldType {
+	case definitions.Compound:
+		compoundField := u.Field(index).Type().Underlying().(*types.Struct)
+		compoundFieldTree := new(TableTree)
+		compoundFieldTree.AddNodes(compoundField)
+		compoundFieldNodes := compoundFieldTree.Traverse()
+
+		refNode := t
+		for e := compoundFieldNodes.Front(); e != nil; e = e.Next() {
+			if refNode.ChildNode == nil {
+				meta, ok := e.Value.(*definitions.FieldMeta)
+				if ok {
+					refNode.ChildNode = &TableTree{Value: meta}
+					refNode = refNode.ChildNode
+				}
+			}
+		}
+
+		if index+1 < numOfFields {
+			// this adds a child whose value is nil. when traversing the data structure, expect to have child nodes with no values
+			// this is not a major pain point since the nil are remove at a later stage.
+			refNode.ChildNode = new(TableTree)
+			refNode.ChildNode.addNodesHelper(u, numOfFields, index+1)
+		}
+
+	default:
+		t.ChildNode = &TableTree{Value: &definitions.FieldMeta{FieldName: u.Field(index).Name(),
 			Tag: u.Tag(index), FieldType: fieldType}}
 		if index+1 < numOfFields {
-			t.LeftNode.addNodesHelper(u, numOfFields, index+1)
+			t.ChildNode.addNodesHelper(u, numOfFields, index+1)
 		}
+
 	}
+
 }
 
 func (t *TableTree) computeBasicType(u types.Type) definitions.BasicType {
 	switch x := u.(type) {
 	case *types.Struct:
+		if t.isOfTimeType(x) || t.isOfNullableTimeType(x) {
+			return definitions.Time
+		}
 		return definitions.Compound
 	case *types.Pointer:
 		elem := x.Underlying().(*types.Pointer).Elem()
@@ -76,6 +107,25 @@ func (t *TableTree) computeBasicType(u types.Type) definitions.BasicType {
 	return definitions.Nil
 }
 
+func (t *TableTree) isOfTimeType(x types.Type) bool {
+	field := x.Underlying().(*types.Struct)
+	if field.NumFields() == 3 && strings.Contains(field.Field(0).String(), "field wall uint64") &&
+		strings.Contains(field.Field(1).String(), "field ext int64") && strings.Contains(field.Field(2).String(), "field loc *time.Location") {
+		return true
+	}
+
+	return false
+}
+
+func (t *TableTree) isOfNullableTimeType(x types.Type) bool {
+	field := x.Underlying().(*types.Struct)
+	if field.NumFields() == 2 && strings.Contains(field.Field(0).String(), "field Time time.Time") &&
+		strings.Contains(field.Field(1).String(), "field Valid bool") {
+		return true
+	}
+	return false
+}
+
 // Traverse ...
 func (t *TableTree) Traverse() list.List {
 	var m list.List
@@ -83,9 +133,9 @@ func (t *TableTree) Traverse() list.List {
 }
 
 func (t *TableTree) traverseHelper(m list.List) list.List {
-	if t.LeftNode != nil {
-		m.PushBack(t.LeftNode.Value)
-		return t.LeftNode.traverseHelper(m)
+	if t.ChildNode != nil {
+		m.PushBack(t.ChildNode.Value)
+		return t.ChildNode.traverseHelper(m)
 	}
 	return m
 }

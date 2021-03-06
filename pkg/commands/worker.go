@@ -16,6 +16,33 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
+func printVerbose(verbose bool, logLevel log.Level, message interface{}) {
+	if verbose {
+		switch logLevel {
+		case log.PanicLevel:
+			log.Panicf("%v", message)
+		case log.FatalLevel:
+			log.Fatalf("%v", message)
+
+		case log.ErrorLevel:
+			log.Errorf("%v", message)
+
+		case log.WarnLevel:
+			log.Warnf("%v", message)
+
+		case log.InfoLevel:
+			log.Infof("%v", message)
+
+		case log.DebugLevel:
+			log.Debugf("%v", message)
+
+		case log.TraceLevel:
+			log.Tracef("%v", message)
+
+		}
+	}
+}
+
 // gormgxFilePath ...
 func gormgxFilePath() (*string, error) {
 	path, err := os.Getwd()
@@ -54,33 +81,6 @@ func checkIntialMIgrationExists() bool {
 		return false
 	}
 	return true
-}
-
-func printVerbose(verbose bool, logLevel log.Level, message interface{}) {
-	if verbose {
-		switch logLevel {
-		case log.PanicLevel:
-			log.Panicf("%v", message)
-		case log.FatalLevel:
-			log.Fatalf("%v", message)
-
-		case log.ErrorLevel:
-			log.Errorf("%v", message)
-
-		case log.WarnLevel:
-			log.Warnf("%v", message)
-
-		case log.InfoLevel:
-			log.Infof("%v", message)
-
-		case log.DebugLevel:
-			log.Debugf("%v", message)
-
-		case log.TraceLevel:
-			log.Tracef("%v", message)
-
-		}
-	}
 }
 
 func readIntentModels(modelsPkgs *[]*types.Package, paths []string, verbose bool) error {
@@ -129,7 +129,7 @@ func readInterfaceFile() []*types.Named {
 	return allNamedInterface
 }
 
-func analyzePkg(pkg *types.Package, verbose bool) error {
+func analyzePkg(pkg *types.Package, verbose bool) map[string]*TableTree {
 	printVerbose(verbose, log.InfoLevel, "Analyzing package scopes")
 
 	// Find all named types at package level.
@@ -146,17 +146,16 @@ func analyzePkg(pkg *types.Package, verbose bool) error {
 		if types.AssignableTo(types.NewPointer(T), allNamedInteraface[0]) {
 			validObjects = append(validObjects, T)
 		} else {
-			printVerbose(verbose, log.WarnLevel, fmt.Sprintf("Skipping object [%v] ; it does not satify interface GormModel", splitTypedNameToObjectName(T)))
+			printVerbose(verbose, log.WarnLevel, fmt.Sprintf("Skipping object [%v] since it does not satify interface [GormModel]", splitTypedNameToObjectName(T)))
 		}
 	}
 
-	typeMap := make(map[*types.Named]*TableTree)
+	typeMap := make(map[string]*TableTree)
 	for _, v := range validObjects {
 		t := nameTypeFieldsMeta(v)
-		typeMap[v] = t
+		typeMap[splitTypedNameToObjectName(v)] = t
 	}
-	log.Printf("type map %v", typeMap)
-	return nil
+	return typeMap
 }
 
 func nameTypeFieldsMeta(v *types.Named) *TableTree {

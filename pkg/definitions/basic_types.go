@@ -22,5 +22,6 @@ const (
 	Complex128 BasicType = "complex128"
 	String     BasicType = "string"
 	Compound   BasicType = "compound"
+	Time       BasicType = "time"
 	Nil        BasicType = "nil"
 )
