@@ -2,21 +2,17 @@ package commands
 
 import (
 	"fmt"
-	"go/ast"
-	"go/importer"
-	"go/parser"
-	"go/token"
 	"go/types"
-	"io"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"strings"
 
 	"github.com/kineticengines/gorm-migrations/pkg/definitions"
 	log "github.com/sirupsen/logrus"
+
 	"gopkg.in/yaml.v2"
+
+	"golang.org/x/tools/go/packages"
 )
 
 // gormgxFilePath ...
@@ -86,16 +82,10 @@ func printVerbose(verbose bool, logLevel log.Level, message interface{}) {
 	}
 }
 
-// readModelsFromPath read models defined in the path defined.
-// construct type info tho assert whether a model is eligible for migration procedure
-func readModelsFromPath(path string) (*types.Package, error) {
-	return readFileSet(path)
-}
-
 func readIntentModels(modelsPkgs *[]*types.Package, paths []string, verbose bool) error {
 	printVerbose(verbose, log.InfoLevel, "Reading intent models")
 	for _, path := range paths {
-		pkg, err := readModelsFromPath(path)
+		pkg, err := ReadModelsFromPath(path)
 		if err != nil {
 			return err
 		}
@@ -104,17 +94,19 @@ func readIntentModels(modelsPkgs *[]*types.Package, paths []string, verbose bool
 	return nil
 }
 
+// ReadModelsFromPath read models defined in the path defined.
+// construct type info tho assert whether a model is eligible for migration procedure
+func ReadModelsFromPath(path string) (*types.Package, error) {
+	return readFileSet(path)
+}
+
 func readFileSet(path string) (*types.Package, error) {
-	fset := token.NewFileSet()
-	f, err := parser.ParseFile(fset, path, nil, 0)
+	cfg := &packages.Config{Mode: packages.NeedName | packages.NeedTypesInfo | packages.NeedTypes}
+	pkgs, err := packages.Load(cfg, path)
 	if err != nil {
-		return nil, fmt.Errorf("parse error %w", err)
+		log.Fatalf("package load error: %v", err)
 	}
-	conf := types.Config{Importer: importer.ForCompiler(fset, "gc", customImporterLookup)}
-	pkg, err := conf.Check("types", fset, []*ast.File{f}, nil)
-	if err != nil {
-		return nil, fmt.Errorf("type check  error %w", err)
-	}
+	pkg := pkgs[0].Types
 	return pkg, nil
 }
 
@@ -124,16 +116,16 @@ func readInterfaceFile() []*types.Named {
 	if err != nil {
 		return nil
 	}
-	var allNamedInteraface []*types.Named
+	var allNamedInterface []*types.Named
 	for _, name := range pkgI.Scope().Names() {
 		if obj, ok := pkgI.Scope().Lookup(name).(*types.TypeName); ok {
-			allNamedInteraface = append(allNamedInteraface, obj.Type().(*types.Named))
+			allNamedInterface = append(allNamedInterface, obj.Type().(*types.Named))
 		}
 	}
-	if !types.IsInterface(allNamedInteraface[0]) {
+	if !types.IsInterface(allNamedInterface[0]) {
 		return nil
 	}
-	return allNamedInteraface
+	return allNamedInterface
 }
 
 func analyzePkg(pkg *types.Package, verbose bool) error {
@@ -152,89 +144,88 @@ func analyzePkg(pkg *types.Package, verbose bool) error {
 	for _, T := range allNamed {
 		if types.AssignableTo(types.NewPointer(T), allNamedInteraface[0]) {
 			validObjects = append(validObjects, T)
+		} else {
+			printVerbose(verbose, log.WarnLevel, fmt.Sprintf("object %v does not satify interface GormModel", T))
 		}
 	}
 
-	typeMap := make(map[*types.Named]map[string]definitions.FieldMeta)
+	typeMap := make(map[*types.Named]*TableTree)
 	for _, v := range validObjects {
-		t := extractFieldsFromStruct(v)
+		t := nameTypeFieldsMeta(v)
 		typeMap[v] = t
 	}
-	fmt.Println(typeMap)
+	log.Printf("type map %v", typeMap)
 	return nil
 }
 
-func extractFieldsFromStruct(v *types.Named) map[string]definitions.FieldMeta {
-	fieldsMap := make(map[string]definitions.FieldMeta)
+func nameTypeFieldsMeta(v *types.Named) *TableTree {
 	u := v.Underlying().(*types.Struct)
-	for i := 0; i < u.NumFields(); i++ {
-		fieldName := u.Field(i).Name()
-		meta := definitions.FieldMeta{}
-		meta.Tag = u.Tag(i)
-		ft := computeBasicType(u.Field(i).Type().Underlying())
-		// if ft == definitions.Nil {
-		// 	log.Panicf("%v; got %T", definitions.ErrNilType)
-		// }
-		meta.FieldType = ft
-		fieldsMap[fieldName] = meta
-	}
-	return fieldsMap
+	tree := new(TableTree)
+	tree.AddNodes(u)
+	return tree
 }
 
-func computeBasicType(u types.Type) definitions.BasicType {
-	switch x := u.(type) {
-	case *types.Struct:
-		// todo
-	case *types.Pointer:
-		elem := x.Underlying().(*types.Pointer).Elem()
-		return computeBasicType(elem)
-	case *types.Basic:
-		switch x.Kind() {
-		case types.String:
-			return definitions.String
-		case types.Bool:
-			return definitions.Bool
-		}
-	default:
-		log.Infoln(x)
-	}
-	return definitions.Nil
-}
+// func extractFieldsFromStruct(u *types.Struct) map[string]definitions.FieldMeta {
+// 	fieldsMap := make(map[string]definitions.FieldMeta)
+// 	for i := 0; i < u.NumFields(); i++ {
+// 		fieldName := u.Field(i).Name()
+// 		meta := definitions.FieldMeta{}
+// 		meta.Tag = u.Tag(i)
+// 		ft := computeBasicType(u.Field(i).Type().Underlying())
+// 		// if ft == definitions.Nil {
+// 		// 	log.Panicf("%v; got %T", definitions.ErrNilType)
+// 		// }
+// 		meta.FieldType = ft
+// 		fieldsMap[fieldName] = meta
+// 	}
+// 	return fieldsMap
+// }
 
-// deprecated
-func customImporterLookup(path string) (io.ReadCloser, error) {
-	if path == definitions.TimePackage {
-		out, err := exec.Command("go", "list", "-f={{context.Compiler}}:{{.Target}}", definitions.TimePackage).CombinedOutput()
-		if err != nil {
-			log.Fatalf("go list %s: %v\n%s", path, err, out)
-		}
-		target := strings.TrimSpace(string(out))
-		i := strings.Index(target, ":")
-		_, target = target[:i], target[i+1:]
-		if !strings.HasSuffix(target, ".a") {
-			log.Fatalf("unexpected package %s target %q (not *.a)", definitions.TimePackage, target)
-		}
-
-		f, err := os.Open(target)
-		if err != nil {
-			log.Fatal(err)
-		}
-		return f, nil
-
-	}
-	if path == definitions.GormPackage {
-		out, err := exec.Command("go", "list", "-m", "-f={{.Dir}}", definitions.GormPackage).CombinedOutput()
-		if err != nil {
-			log.Fatalf("go list %s: %v\n%s", definitions.TimePackage, err, out)
-		}
-		target := strings.TrimSpace(string(out))
-		target = fmt.Sprintf("%s/model.go", target)
-		fmt.Println(target)
-		f, err := os.Open(target)
-		if err != nil {
-			log.Fatal(err)
-		}
-		return f, nil
-	}
-	return nil, nil
-}
+// func computeBasicType(u types.Type) definitions.BasicType {
+// 	switch x := u.(type) {
+// 	case *types.Struct:
+// 		// todo
+// 		log.Infof("type struct %v", x)
+// 	case *types.Pointer:
+// 		elem := x.Underlying().(*types.Pointer).Elem()
+// 		return computeBasicType(elem)
+// 	case *types.Basic:
+// 		switch x.Kind() {
+// 		case types.Int:
+// 			return definitions.Int
+// 		case types.Int8:
+// 			return definitions.Int8
+// 		case types.Int16:
+// 			return definitions.Int16
+// 		case types.Int32:
+// 			return definitions.Int32
+// 		case types.Int64:
+// 			return definitions.Int64
+// 		case types.Uint:
+// 			return definitions.Uint
+// 		case types.Uint8:
+// 			return definitions.Uint8
+// 		case types.Uint16:
+// 			return definitions.Uint16
+// 		case types.Uint32:
+// 			return definitions.Uint32
+// 		case types.Uint64:
+// 			return definitions.Uint64
+// 		case types.Float32:
+// 			return definitions.Float32
+// 		case types.Float64:
+// 			return definitions.Float64
+// 		case types.Complex64:
+// 			return definitions.Complex64
+// 		case types.Complex128:
+// 			return definitions.Complex128
+// 		case types.String:
+// 			return definitions.String
+// 		case types.Bool:
+// 			return definitions.Bool
+// 		}
+// 	default:
+// 		log.Infof("basiv type %v", x)
+// 	}
+// 	return definitions.Nil
+// }

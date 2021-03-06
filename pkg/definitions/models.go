@@ -23,6 +23,17 @@ type Model struct {
 
 // FieldMeta ...
 type FieldMeta struct {
+	FieldName string
 	Tag       string
 	FieldType BasicType
+}
+
+// ModuleListing ...
+type ModuleListing struct {
+	Path      string `json:"Path"`
+	Version   string `json:"Version"`
+	Time      string `json:"Time"`
+	Dir       string `json:"Dir"`
+	GoMod     string `json:"GoMod"`
+	GoVersion string `json:"GoVersion"`
 }
