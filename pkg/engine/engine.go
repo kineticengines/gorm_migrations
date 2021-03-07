@@ -1,4 +1,4 @@
-package commands
+package engine
 
 import (
 	"fmt"
@@ -16,7 +16,16 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
-func printVerbose(verbose bool, logLevel log.Level, message interface{}) {
+// Runner ...
+type Runner struct{}
+
+// NewRunner ...
+func NewRunner() definitions.Worker {
+	return &Runner{}
+}
+
+// PrintVerbose ...
+func (r *Runner) PrintVerbose(verbose bool, logLevel log.Level, message interface{}) {
 	if verbose {
 		switch logLevel {
 		case log.PanicLevel:
@@ -43,8 +52,8 @@ func printVerbose(verbose bool, logLevel log.Level, message interface{}) {
 	}
 }
 
-// gormgxFilePath ...
-func gormgxFilePath() (*string, error) {
+// GormgxFilePath ...
+func (r *Runner) GormgxFilePath() (*string, error) {
 	path, err := os.Getwd()
 	if err != nil {
 		return nil, definitions.ErrUnableToGetWorkingDirectory
@@ -53,8 +62,9 @@ func gormgxFilePath() (*string, error) {
 	return &file, nil
 }
 
-func readYamlToconfig() (*definitions.Config, error) {
-	yamlPath, err := gormgxFilePath()
+// ReadYamlToconfig ...
+func (r *Runner) ReadYamlToconfig() (*definitions.Config, error) {
+	yamlPath, err := r.GormgxFilePath()
 	if err != nil {
 		return nil, definitions.ErrFailedToFetchGormgxPath
 	}
@@ -71,7 +81,8 @@ func readYamlToconfig() (*definitions.Config, error) {
 	return &cfg, nil
 }
 
-func checkIntialMigrationExists() bool {
+// CheckIntialMigrationExists ...
+func (r *Runner) CheckIntialMigrationExists() bool {
 	path, err := os.Getwd()
 	if err != nil {
 		return false
@@ -83,10 +94,11 @@ func checkIntialMigrationExists() bool {
 	return true
 }
 
-func readIntentModels(modelsPkgs *[]*types.Package, paths []string, verbose bool) error {
-	printVerbose(verbose, log.InfoLevel, "Reading intent models")
+// ReadIntentModels ...
+func (r *Runner) ReadIntentModels(modelsPkgs *[]*types.Package, paths []string, verbose bool) error {
+	r.PrintVerbose(verbose, log.InfoLevel, "Reading intent models")
 	for _, path := range paths {
-		pkg, err := ReadModelsFromPath(path)
+		pkg, err := r.ReadModelsFromPath(path)
 		if err != nil {
 			return err
 		}
@@ -97,11 +109,12 @@ func readIntentModels(modelsPkgs *[]*types.Package, paths []string, verbose bool
 
 // ReadModelsFromPath read models defined in the path defined.
 // construct type info tho assert whether a model is eligible for migration procedure
-func ReadModelsFromPath(path string) (*types.Package, error) {
-	return readFileSet(path)
+func (r *Runner) ReadModelsFromPath(path string) (*types.Package, error) {
+	return r.ReadFileSet(path)
 }
 
-func readFileSet(path string) (*types.Package, error) {
+// ReadFileSet ...
+func (r *Runner) ReadFileSet(path string) (*types.Package, error) {
 	cfg := &packages.Config{Mode: packages.NeedName | packages.NeedTypesInfo | packages.NeedTypes | packages.NeedCompiledGoFiles | packages.NeedImports}
 	pkgs, err := packages.Load(cfg, path)
 	if err != nil {
@@ -111,9 +124,10 @@ func readFileSet(path string) (*types.Package, error) {
 	return pkg, nil
 }
 
-func readInterfaceFile() []*types.Named {
+// ReadInterfaceFile ...
+func (r *Runner) ReadInterfaceFile() []*types.Named {
 	// read interface definition file. Will be used to assert if a model satisfies it
-	pkgI, err := readFileSet("pkg/definitions/interface.go")
+	pkgI, err := r.ReadFileSet(definitions.GormModelInterfaceFile)
 	if err != nil {
 		return nil
 	}
@@ -129,8 +143,9 @@ func readInterfaceFile() []*types.Named {
 	return allNamedInterface
 }
 
-func analyzePkg(pkg *types.Package, verbose bool) map[string]*TableTree {
-	printVerbose(verbose, log.InfoLevel, "Analyzing package scopes")
+// AnalyzePkg ...
+func (r *Runner) AnalyzePkg(pkg *types.Package, verbose bool) map[string]*definitions.TableTree {
+	r.PrintVerbose(verbose, log.InfoLevel, "Analyzing package scopes")
 
 	// Find all named types at package level.
 	var allNamed []*types.Named
@@ -141,30 +156,32 @@ func analyzePkg(pkg *types.Package, verbose bool) map[string]*TableTree {
 	}
 
 	validObjects := []*types.Named{}
-	allNamedInteraface := readInterfaceFile()
+	allNamedInteraface := r.ReadInterfaceFile()
 	for _, T := range allNamed {
 		if types.AssignableTo(types.NewPointer(T), allNamedInteraface[0]) {
 			validObjects = append(validObjects, T)
 		} else {
-			printVerbose(verbose, log.WarnLevel, fmt.Sprintf("Skipping object [%v] since it does not satify interface [GormModel]", splitTypedNameToObjectName(T)))
+			r.PrintVerbose(verbose, log.WarnLevel, fmt.Sprintf("Skipping object [%v] since it does not satify interface [GormModel]", r.SplitTypedNameToObjectName(T)))
 		}
 	}
 
-	typeMap := make(map[string]*TableTree)
+	typeMap := make(map[string]*definitions.TableTree)
 	for _, v := range validObjects {
-		t := nameTypeFieldsMeta(v)
-		typeMap[splitTypedNameToObjectName(v)] = t
+		t := r.NameTypeFieldsMeta(v)
+		typeMap[r.SplitTypedNameToObjectName(v)] = t
 	}
 	return typeMap
 }
 
-func nameTypeFieldsMeta(v *types.Named) *TableTree {
+// NameTypeFieldsMeta ...
+func (r *Runner) NameTypeFieldsMeta(v *types.Named) *definitions.TableTree {
 	u := v.Underlying().(*types.Struct)
-	tree := new(TableTree)
+	tree := new(definitions.TableTree)
 	tree.AddNodes(u)
 	return tree
 }
 
-func splitTypedNameToObjectName(t *types.Named) string {
+// SplitTypedNameToObjectName ...
+func (r *Runner) SplitTypedNameToObjectName(t *types.Named) string {
 	return strings.Split(t.String(), ".")[1]
 }

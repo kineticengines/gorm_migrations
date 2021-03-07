@@ -1,4 +1,4 @@
-package commands_test
+package tests
 
 import (
 	"go/types"
@@ -7,21 +7,18 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/kineticengines/gorm-migrations/pkg/commands"
+	"github.com/kineticengines/gorm-migrations/pkg/definitions"
+	"github.com/kineticengines/gorm-migrations/pkg/engine"
 	"github.com/stretchr/testify/require"
 )
 
-func TestSimpleTableTree_1(t *testing.T) {
-	tr := new(commands.TableTree)
-	require.Nil(t, tr.ChildNode)
-	require.Nil(t, tr.Value)
-}
-
 func TestSimpleTableTree_2(t *testing.T) {
 	dir, _ := os.Getwd()
-	path := strings.Split(dir, "/commands")[0]
-	path = filepath.Join(path, "definitions/testdata/simple_account.go")
-	pkg, err := commands.ReadModelsFromPath(path)
+	path := strings.Split(dir, "/tests")[0]
+	path = filepath.Join(path, "pkg/definitions/testdata/simple_account.go")
+
+	runner := engine.NewRunner()
+	pkg, err := runner.ReadModelsFromPath(path)
 	require.Nil(t, err)
 	require.NotNil(t, pkg)
 
@@ -38,9 +35,7 @@ func TestSimpleTableTree_2(t *testing.T) {
 	namedType := allNamed[0]
 	obj := namedType.Underlying().(*types.Struct)
 
-	tr := new(commands.TableTree)
-	require.Nil(t, tr.ChildNode)
-	require.Nil(t, tr.Value)
+	tr := new(definitions.TableTree)
 
 	tr.AddNodes(obj)
 
@@ -50,10 +45,11 @@ func TestSimpleTableTree_2(t *testing.T) {
 
 func TestComplexTableTree(t *testing.T) {
 	dir, _ := os.Getwd()
-	path := strings.Split(dir, "/commands")[0]
-	path = filepath.Join(path, "definitions/testdata/complex_account1.go")
+	path := strings.Split(dir, "/tests")[0]
+	path = filepath.Join(path, "pkg/definitions/testdata/complex_account1.go")
 
-	pkg, err := commands.ReadModelsFromPath(path)
+	runner := engine.NewRunner()
+	pkg, err := runner.ReadModelsFromPath(path)
 	require.Nil(t, err)
 	require.NotNil(t, pkg)
 
@@ -70,9 +66,7 @@ func TestComplexTableTree(t *testing.T) {
 	namedType := allNamed[0]
 	obj := namedType.Underlying().(*types.Struct)
 
-	tr := new(commands.TableTree)
-	require.Nil(t, tr.ChildNode)
-	require.Nil(t, tr.Value)
+	tr := new(definitions.TableTree)
 
 	tr.AddNodes(obj)
 
@@ -82,10 +76,11 @@ func TestComplexTableTree(t *testing.T) {
 
 func TestComplexTableTree_2(t *testing.T) {
 	dir, _ := os.Getwd()
-	path := strings.Split(dir, "/commands")[0]
-	path = filepath.Join(path, "definitions/testdata/complex_account2.go")
+	path := strings.Split(dir, "/tests")[0]
+	path = filepath.Join(path, "pkg/definitions/testdata/complex_account2.go")
 
-	pkg, err := commands.ReadModelsFromPath(path)
+	runner := engine.NewRunner()
+	pkg, err := runner.ReadModelsFromPath(path)
 	require.Nil(t, err)
 	require.NotNil(t, pkg)
 
@@ -102,9 +97,7 @@ func TestComplexTableTree_2(t *testing.T) {
 	namedType := allNamed[0]
 	obj := namedType.Underlying().(*types.Struct)
 
-	tr := new(commands.TableTree)
-	require.Nil(t, tr.ChildNode)
-	require.Nil(t, tr.Value)
+	tr := new(definitions.TableTree)
 
 	tr.AddNodes(obj)
 
@@ -115,10 +108,11 @@ func TestComplexTableTree_2(t *testing.T) {
 
 func TestComplexTableTree_3(t *testing.T) {
 	dir, _ := os.Getwd()
-	path := strings.Split(dir, "/commands")[0]
-	path = filepath.Join(path, "definitions/testdata/complex_account3.go")
+	path := strings.Split(dir, "/tests")[0]
+	path = filepath.Join(path, "pkg/definitions/testdata/complex_account3.go")
 
-	pkg, err := commands.ReadModelsFromPath(path)
+	runner := engine.NewRunner()
+	pkg, err := runner.ReadModelsFromPath(path)
 	require.Nil(t, err)
 	require.NotNil(t, pkg)
 
@@ -135,9 +129,7 @@ func TestComplexTableTree_3(t *testing.T) {
 	namedType := allNamed[0]
 	obj := namedType.Underlying().(*types.Struct)
 
-	tr := new(commands.TableTree)
-	require.Nil(t, tr.ChildNode)
-	require.Nil(t, tr.Value)
+	tr := new(definitions.TableTree)
 
 	tr.AddNodes(obj)
 
@@ -148,10 +140,11 @@ func TestComplexTableTree_3(t *testing.T) {
 
 func TestComplexTableTree_4(t *testing.T) {
 	dir, _ := os.Getwd()
-	path := strings.Split(dir, "/commands")[0]
-	path = filepath.Join(path, "definitions/testdata/complex_account4.go")
+	path := strings.Split(dir, "/tests")[0]
+	path = filepath.Join(path, "pkg/definitions/testdata/complex_account4.go")
 
-	pkg, err := commands.ReadModelsFromPath(path)
+	runner := engine.NewRunner()
+	pkg, err := runner.ReadModelsFromPath(path)
 	require.Nil(t, err)
 	require.NotNil(t, pkg)
 
@@ -168,9 +161,7 @@ func TestComplexTableTree_4(t *testing.T) {
 	namedType := allNamed[0]
 	obj := namedType.Underlying().(*types.Struct)
 
-	tr := new(commands.TableTree)
-	require.Nil(t, tr.ChildNode)
-	require.Nil(t, tr.Value)
+	tr := new(definitions.TableTree)
 
 	tr.AddNodes(obj)
 

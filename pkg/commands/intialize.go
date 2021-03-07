@@ -8,6 +8,7 @@ import (
 	"text/template"
 
 	"github.com/kineticengines/gorm-migrations/pkg/definitions"
+	"github.com/kineticengines/gorm-migrations/pkg/engine"
 	"github.com/urfave/cli/v2"
 )
 
@@ -16,7 +17,8 @@ var IntializeCmd = &cli.Command{
 	Name:  definitions.IntializeCmd,
 	Usage: definitions.IntializeCmdUsage,
 	Action: func(c *cli.Context) error {
-		return initialize()
+		i := initializor{runner: engine.NewRunner()}
+		return i.initialize()
 	},
 }
 
@@ -33,21 +35,25 @@ add_gorm_model: true
 
 `))
 
-func initialize() error {
-	exists, err := checkIfInitialized()
+type initializor struct {
+	runner definitions.Worker
+}
+
+func (i *initializor) initialize() error {
+	exists, err := i.checkIfInitialized()
 	if err != nil {
 		return err
 	}
 	if !exists {
-		return createGormgxYamlFile()
+		return i.createGormgxYamlFile()
 	}
 	return definitions.ErrGormgxYamlExists
 }
 
 // checkIfInitialized checks for the presence of gormgx.yaml file
 // returns an error if it absent
-func checkIfInitialized() (bool, error) {
-	file, err := gormgxFilePath()
+func (i *initializor) checkIfInitialized() (bool, error) {
+	file, err := i.runner.GormgxFilePath()
 	if err != nil {
 		return false, err
 	}
@@ -57,8 +63,8 @@ func checkIfInitialized() (bool, error) {
 	return true, nil
 }
 
-func createGormgxYamlFile() error {
-	path, err := gormgxFilePath()
+func (i *initializor) createGormgxYamlFile() error {
+	path, err := i.runner.GormgxFilePath()
 	if err != nil {
 		return err
 	}
