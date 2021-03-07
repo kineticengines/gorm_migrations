@@ -6,18 +6,19 @@ import (
 
 // context constants
 const (
-	AppName                 = "Gorm Migrations [gormgx]"
-	AppDescription          = `Gorm Migrations CLI utility manages SQL migrations for gorm. It implements the same API as Django migrations, so you should be at home if coming from Django.`
-	AppUsage                = "Making database changes ease, manageable and maintainable"
-	GormgxYamlFileName      = "gormgx.yaml"
-	IntialMigrationFileName = "00001_init.gormgx"
-	DefaultMIgrationsPath   = "migrations"
-	GormModelInterfaceFile  = "pkg/definitions/gorm_model.go"
+	AppName                  = "Gorm Migrations [gormgx]"
+	AppDescription           = `Gorm Migrations CLI utility manages SQL migrations for gorm. It implements the same API as Django migrations, so you should be at home if coming from Django.`
+	AppUsage                 = "Making database changes ease, manageable and maintainable"
+	GormgxYamlFileName       = "gormgx.yaml"
+	InitialMigrationFileName = "00001_init.gormgx"
+	DefaultMIgrationsPath    = "migrations"
+	GormModelInterfaceFile   = "pkg/definitions/gorm_model.go"
+	GormDatabaseDSNEnv       = "DATABASE_DSN"
 )
 
 // commands
 const (
-	IntializeCmd      = "init"
+	InitializeCmd     = "init"
 	MakemigrationsCmd = "make-migrations"
 	ApplyCmd          = "apply"
 	RevertCmd         = "revert"
@@ -28,7 +29,7 @@ const (
 
 // commands usage descriptions
 const (
-	IntializeCmdUsage      = "intializes the default gormgx configuration. It create gormgx.yaml in the current working directory"
+	InitializeCmdUsage     = "initializes the default gormgx configuration. It create gormgx.yaml in the current working directory"
 	MakemigrationsCmdUsage = "analyzes models and create migrations"
 	ApplyCmdUsage          = "commits migrations to the database"
 	RevertCmdUsage         = "undoes the previously performed migration"
@@ -51,14 +52,14 @@ const (
 type Intent int
 
 const (
-	// IntialIntent ...
-	IntialIntent Intent = iota
+	// InitialIntent ...
+	InitialIntent Intent = iota
 
 	// AfterIntialIntent ...
-	AfterIntialIntent
+	AfterInitialIntent
 )
 
 // response message
 var (
-	AfterIntializeMessage = emoji.Sprint(`:beer: Hurray!!! Gormgx has been intialized. Check "gormgx.yaml" file and amend it to your needs. Remember not to remove it`)
+	AfterInitializeMessage = emoji.Sprint(`:beer: Hurray!!! Gormgx has been intialized. Check "gormgx.yaml" file and amend it to your needs. Remember not to remove it`)
 )

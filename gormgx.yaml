@@ -1,0 +1,16 @@
+# Where all migrations files will be located
+migrations: migrations/*.gormgx
+
+# Where your gorm models are located
+models:
+  - example/models/models.go  
+
+# Which database type to use. Defaults to "postgres". Choices : [postgres,mysql,sqlite]
+dialect: postgres
+
+# Which driver to use. Defaults to "default". Choices : [default,cloudsqlpostgres]
+driver_name: default
+
+# Optional : set the time zone for time.Time fields. Defaults to "Africa/Nairobi"
+time_zone: Africa/Nairobi
+

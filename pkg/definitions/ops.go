@@ -79,7 +79,7 @@ type OpColumn struct {
 	Size int
 
 	// the default of the the column, It's an interface since we don't know the `DatabaseType` for hand
-	Default interface{}
+	Default string
 
 	// the timezone to use for date fields. All date/time fields in gormgx are timezone by default
 	TimeZone string

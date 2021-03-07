@@ -6,10 +6,12 @@ import (
 
 // Config ...
 type Config struct {
-	Migrations   string   `yaml:"migrations"`
-	Models       []string `yaml:"models"`
-	AddGormModel bool     `yaml:"add_gorm_model"`
-	TimeZone     string   `yaml:"time_zone"`
+	Migrations string   `yaml:"migrations"`
+	Models     []string `yaml:"models"`
+	Dialect    string   `yaml:"dialect"`
+	DriverName string   `yaml:"driver_name"`
+	DSN        string   `yaml:"dsn"`
+	TimeZone   string   `yaml:"time_zone"`
 }
 
 // Model is a same model as defines in `gorm.Model`
