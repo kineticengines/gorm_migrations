@@ -71,7 +71,7 @@ func readYamlToconfig() (*definitions.Config, error) {
 	return &cfg, nil
 }
 
-func checkIntialMIgrationExists() bool {
+func checkIntialMigrationExists() bool {
 	path, err := os.Getwd()
 	if err != nil {
 		return false
@@ -102,7 +102,7 @@ func ReadModelsFromPath(path string) (*types.Package, error) {
 }
 
 func readFileSet(path string) (*types.Package, error) {
-	cfg := &packages.Config{Mode: packages.NeedName | packages.NeedTypesInfo | packages.NeedTypes}
+	cfg := &packages.Config{Mode: packages.NeedName | packages.NeedTypesInfo | packages.NeedTypes | packages.NeedCompiledGoFiles | packages.NeedImports}
 	pkgs, err := packages.Load(cfg, path)
 	if err != nil {
 		log.Fatalf("package load error: %v", err)

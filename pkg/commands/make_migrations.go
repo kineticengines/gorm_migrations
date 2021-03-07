@@ -97,7 +97,7 @@ func (m *MgxMaker) setIntent() (MakeMigration, error) {
 	}
 
 	printVerbose(m.verbose, log.InfoLevel, "Setting intent")
-	if !checkIntialMIgrationExists() {
+	if !checkIntialMigrationExists() {
 		m.intent = definitions.IntialIntent
 		return m, nil
 	}

@@ -1,8 +1,14 @@
 package testdata
 
+// Product2 ...
+type Product2 struct {
+	Code  string
+	Price uint
+}
+
 // ComplexAccount2 ...
 type ComplexAccount2 struct {
-	Product
+	Product2
 	GUID      *string `gorm:"not null;unique;column:guid"`
 	FirstName *string `gorm:"not null;column:first_name"`
 }

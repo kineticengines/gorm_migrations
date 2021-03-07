@@ -113,7 +113,6 @@ func (t *TableTree) isOfTimeType(x types.Type) bool {
 		strings.Contains(field.Field(1).String(), "field ext int64") && strings.Contains(field.Field(2).String(), "field loc *time.Location") {
 		return true
 	}
-
 	return false
 }
 
