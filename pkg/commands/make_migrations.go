@@ -36,8 +36,8 @@ type MakeMigration interface {
 	hasError() error
 	loadYaml() MakeMigration
 	setIntent() (MakeMigration, error)
-	buildIntialIntent() (MakeMigration, error)
-	buildAfterIntialIntent() (MakeMigration, error)
+	buildInitialIntent() (MakeMigration, error)
+	buildAfterInitialIntent() (MakeMigration, error)
 }
 
 // MgxMaker ...
@@ -65,6 +65,9 @@ func NewMgxMaker(path string, verbose bool) MakeMigration {
 
 // Migrate ...
 func (m *MgxMaker) Migrate() error {
+	// check if required envs are set. Otherwise, kill the app early
+	m.runner.FetchConnectionDNSFromEnv()
+
 	// read gormgx.yaml file
 	if err := m.hasError(); err != nil {
 		return err
@@ -72,10 +75,10 @@ func (m *MgxMaker) Migrate() error {
 	if _, err := m.loadYaml().setIntent(); err != nil {
 		return err
 	}
-	if _, err := m.buildIntialIntent(); err != nil {
+	if _, err := m.buildInitialIntent(); err != nil {
 		return err
 	}
-	if _, err := m.buildAfterIntialIntent(); err != nil {
+	if _, err := m.buildAfterInitialIntent(); err != nil {
 		return err
 	}
 	// called to catch any errors in the final steps
@@ -110,20 +113,20 @@ func (m *MgxMaker) setIntent() (MakeMigration, error) {
 	}
 
 	m.runner.PrintVerbose(m.verbose, log.InfoLevel, "Setting intent")
-	if !m.runner.CheckIntialMigrationExists() {
-		m.intent = definitions.IntialIntent
+	if !m.runner.CheckInitialMigrationExists() {
+		m.intent = definitions.InitialIntent
 		return m, nil
 	}
 
-	m.intent = definitions.AfterIntialIntent
+	m.intent = definitions.AfterInitialIntent
 	return m, nil
 }
 
-func (m *MgxMaker) buildIntialIntent() (MakeMigration, error) {
+func (m *MgxMaker) buildInitialIntent() (MakeMigration, error) {
 	if err := m.hasError(); err != nil {
 		return nil, err
 	}
-	if m.intent == definitions.IntialIntent {
+	if m.intent == definitions.InitialIntent {
 		if err := m.runner.ReadIntentModels(m.modelsPkgs, m.config.Models, m.verbose); err != nil {
 			m.errorsCache.Store(errorKey, err)
 			return nil, err
@@ -151,24 +154,24 @@ func (m *MgxMaker) buildIntialIntent() (MakeMigration, error) {
 	return m.createMigrationFiles()
 }
 
-func (m *MgxMaker) buildAfterIntialIntent() (MakeMigration, error) {
+func (m *MgxMaker) buildAfterInitialIntent() (MakeMigration, error) {
 	if err := m.hasError(); err != nil {
 		return nil, err
 	}
-	if m.intent == definitions.AfterIntialIntent {
+	if m.intent == definitions.AfterInitialIntent {
 		return m, nil
 	}
 	return m, nil
 }
 
 func (m *MgxMaker) createMigrationFiles() (MakeMigration, error) {
-	if m.intent == definitions.IntialIntent {
+	if m.intent == definitions.InitialIntent {
 		var wg sync.WaitGroup
 		for tableName, tableTree := range m.tables {
 			wg.Add(1)
 			go func(w *sync.WaitGroup, tn string, tt *definitions.TableTree, mgx *MgxMaker) {
 				defer wg.Done()
-				if err := migrator.NewMigratorWorker(tn, tt, mgx.verbose, mgx.runner).RunIntialIntent(); err != nil {
+				if err := migrator.NewMigratorWorker(tn, tt, mgx.verbose, mgx.runner).RunInitialIntent(); err != nil {
 					m.errorsCache.Store(errorKey, err)
 				}
 

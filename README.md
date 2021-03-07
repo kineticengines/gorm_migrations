@@ -47,3 +47,9 @@ gormgx.go -v make-migrations
 - Models specifications should be in one (1) go file. Preferably `models.go`
 - Override Foreign Key must be of the form `ModelNameRefer`.
 - Foreign key must be `Interface{}`. Gormgx will extract the extact model from the tags
+
+## Environment
+
+```sh
+export DATABASE_DSN="host=localhost user=gorm password=gorm dbname=gorm port=9920 sslmode=disable TimeZone=Africa/Nairobi"
+```

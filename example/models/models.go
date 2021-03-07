@@ -7,17 +7,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// Product ...
-type Product struct {
-	Code  string
-	Price uint
-}
-
-// // IsModel ..
-// func (m *Product) IsModel() bool {
-// 	return true
-// }
-
 // User ...
 type User struct {
 	gorm.Model
@@ -65,9 +54,9 @@ type Accounts struct {
 }
 
 // IsModel ..
-func (m *Accounts) IsModel() bool {
-	return true
-}
+// func (m *Accounts) IsModel() bool {
+// 	return true
+// }
 
 // Credentials holds auth credentials when user logs in via afya notes console
 // This table is populated on first sign up
@@ -82,9 +71,22 @@ type Credentials struct {
 // 	return true
 // }
 
+// Product ...
+type Product struct {
+	Code    string
+	Price   uint
+	Company interface{} `gorm:"foreignKey:CompanyRefer;foreignKeyRefField:guid"`
+}
+
+// IsModel ..
+func (m *Product) IsModel() bool {
+	return true
+}
+
 // Company ....
 type Company struct {
 	ID   int
+	GUID string `gorm:"not null;unique;column:guid"`
 	Name string
 }
 

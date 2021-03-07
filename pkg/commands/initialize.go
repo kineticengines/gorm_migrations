@@ -12,12 +12,12 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-// IntializeCmd ...
-var IntializeCmd = &cli.Command{
-	Name:  definitions.IntializeCmd,
-	Usage: definitions.IntializeCmdUsage,
+// InitializeCmd ...
+var InitializeCmd = &cli.Command{
+	Name:  definitions.InitializeCmd,
+	Usage: definitions.InitializeCmdUsage,
 	Action: func(c *cli.Context) error {
-		i := initializor{runner: engine.NewRunner()}
+		i := initializer{runner: engine.NewRunner()}
 		return i.initialize()
 	},
 }
@@ -30,19 +30,22 @@ migrations: migrations/*.gormgx
 models:
   - models/models.go  
 
-# Optional: set to add "gorm.Model" to your models
-add_gorm_model: true
+# Which database type to use. Defaults to "postgres". Choices : [postgres,mysql,sqlite]
+dialect: postgres
+
+# Which driver to use. Defaults to "default". Choices : [default,cloudsqlpostgres]
+driver_name: default
 
 # Optional : set the time zone for time.Time fields. Defaults to "Africa/Nairobi"
 time_zone: Africa/Nairobi
 
 `))
 
-type initializor struct {
+type initializer struct {
 	runner definitions.Worker
 }
 
-func (i *initializor) initialize() error {
+func (i *initializer) initialize() error {
 	exists, err := i.checkIfInitialized()
 	if err != nil {
 		return err
@@ -55,7 +58,7 @@ func (i *initializor) initialize() error {
 
 // checkIfInitialized checks for the presence of gormgx.yaml file
 // returns an error if it absent
-func (i *initializor) checkIfInitialized() (bool, error) {
+func (i *initializer) checkIfInitialized() (bool, error) {
 	file, err := i.runner.GormgxFilePath()
 	if err != nil {
 		return false, err
@@ -66,7 +69,7 @@ func (i *initializor) checkIfInitialized() (bool, error) {
 	return true, nil
 }
 
-func (i *initializor) createGormgxYamlFile() error {
+func (i *initializer) createGormgxYamlFile() error {
 	path, err := i.runner.GormgxFilePath()
 	if err != nil {
 		return err
@@ -85,6 +88,6 @@ func (i *initializor) createGormgxYamlFile() error {
 		return fmt.Errorf("unable to write gormgx file: " + err.Error())
 	}
 
-	fmt.Println(definitions.AfterIntializeMessage)
+	fmt.Println(definitions.AfterInitializeMessage)
 	return nil
 }

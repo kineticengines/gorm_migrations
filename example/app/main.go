@@ -10,8 +10,13 @@ import (
 
 func main() {
 
-	dsn := "host=localhost user=gorm password=gorm dbname=gorm port=5432 sslmode=disable TimeZone=Africa/Nairobi"
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	// dsn := "host=localhost user=gorm password=gorm dbname=gorm port=5432 sslmode=disable TimeZone=Africa/Nairobi"
+	// db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+
+	db, err := gorm.Open(postgres.New(postgres.Config{
+		DSN:                  "host=localhost user=gorm password=gorm dbname=gorm port=5432 sslmode=disable TimeZone=Africa/Nairobi",
+		PreferSimpleProtocol: true, // disables implicit prepared statement usage
+	}), &gorm.Config{})
 
 	if err != nil {
 		panic("failed to connect database")

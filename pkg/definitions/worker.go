@@ -14,7 +14,7 @@ type Worker interface {
 
 	ReadYamlToconfig() (*Config, error)
 
-	CheckIntialMigrationExists() bool
+	CheckInitialMigrationExists() bool
 
 	ReadIntentModels(modelsPkgs *[]*types.Package, paths []string, verbose bool) error
 
@@ -29,4 +29,6 @@ type Worker interface {
 	NameTypeFieldsMeta(v *types.Named) *TableTree
 
 	SplitTypedNameToObjectName(t *types.Named) string
+
+	FetchConnectionDNSFromEnv() *string
 }

@@ -81,13 +81,13 @@ func (r *Runner) ReadYamlToconfig() (*definitions.Config, error) {
 	return &cfg, nil
 }
 
-// CheckIntialMigrationExists ...
-func (r *Runner) CheckIntialMigrationExists() bool {
+// CheckInitialMigrationExists ...
+func (r *Runner) CheckInitialMigrationExists() bool {
 	path, err := os.Getwd()
 	if err != nil {
 		return false
 	}
-	initMigrationPath := filepath.Join(path, definitions.DefaultMIgrationsPath, definitions.IntialMigrationFileName)
+	initMigrationPath := filepath.Join(path, definitions.DefaultMIgrationsPath, definitions.InitialMigrationFileName)
 	if _, err := os.Stat(initMigrationPath); os.IsNotExist(err) {
 		return false
 	}
@@ -155,6 +155,10 @@ func (r *Runner) AnalyzePkg(pkg *types.Package, verbose bool) map[string]*defini
 		}
 	}
 
+	if len(allNamed) == 0 && verbose {
+		r.PrintVerbose(verbose, log.WarnLevel, "No models found. Have you pointed to the correct file in gormgx.yaml? ")
+	}
+
 	validObjects := []*types.Named{}
 	allNamedInteraface := r.ReadInterfaceFile()
 	for _, T := range allNamed {
@@ -184,4 +188,15 @@ func (r *Runner) NameTypeFieldsMeta(v *types.Named) *definitions.TableTree {
 // SplitTypedNameToObjectName ...
 func (r *Runner) SplitTypedNameToObjectName(t *types.Named) string {
 	return strings.Split(t.String(), ".")[1]
+}
+
+// FetchConnectionDNSFromEnv ..
+func (r *Runner) FetchConnectionDNSFromEnv() *string {
+	e := os.Getenv(definitions.GormDatabaseDSNEnv)
+	if e == "" {
+		log.Errorf("%v is missing from environment", definitions.GormDatabaseDSNEnv)
+		os.Exit(1)
+	}
+
+	return &e
 }
