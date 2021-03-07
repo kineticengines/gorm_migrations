@@ -8,7 +8,7 @@ import (
 const (
 	AppName                 = "Gorm Migrations [gormgx]"
 	AppDescription          = `Gorm Migrations CLI utility manages SQL migrations for gorm. It implements the same API as Django migrations, so you should be at home if coming from Django.`
-	AppUsage                = "Making database changes ease, managable and maintainable"
+	AppUsage                = "Making database changes ease, manageable and maintainable"
 	GormgxYamlFileName      = "gormgx.yaml"
 	IntialMigrationFileName = "00001_init.gormgx"
 	DefaultMIgrationsPath   = "migrations"

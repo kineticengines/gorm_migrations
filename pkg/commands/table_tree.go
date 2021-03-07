@@ -69,42 +69,48 @@ func (t *TableTree) computeBasicType(u types.Type) definitions.BasicType {
 		elem := x.Underlying().(*types.Pointer).Elem()
 		return t.computeBasicType(elem)
 	case *types.Basic:
-		switch x.Kind() {
-		case types.Int:
-			return definitions.Int
-		case types.Int8:
-			return definitions.Int8
-		case types.Int16:
-			return definitions.Int16
-		case types.Int32:
-			return definitions.Int32
-		case types.Int64:
-			return definitions.Int64
-		case types.Uint:
-			return definitions.Uint
-		case types.Uint8:
-			return definitions.Uint8
-		case types.Uint16:
-			return definitions.Uint16
-		case types.Uint32:
-			return definitions.Uint32
-		case types.Uint64:
-			return definitions.Uint64
-		case types.Float32:
-			return definitions.Float32
-		case types.Float64:
-			return definitions.Float64
-		case types.Complex64:
-			return definitions.Complex64
-		case types.Complex128:
-			return definitions.Complex128
-		case types.String:
-			return definitions.String
-		case types.Bool:
-			return definitions.Bool
-		}
+		return t.whichTypesBasic(x)
 	}
 	return definitions.Nil
+}
+
+func (t *TableTree) whichTypesBasic(x *types.Basic) definitions.BasicType {
+	switch x.Kind() {
+	case types.Int:
+		return definitions.Int
+	case types.Int8:
+		return definitions.Int8
+	case types.Int16:
+		return definitions.Int16
+	case types.Int32:
+		return definitions.Int32
+	case types.Int64:
+		return definitions.Int64
+	case types.Uint:
+		return definitions.Uint
+	case types.Uint8:
+		return definitions.Uint8
+	case types.Uint16:
+		return definitions.Uint16
+	case types.Uint32:
+		return definitions.Uint32
+	case types.Uint64:
+		return definitions.Uint64
+	case types.Float32:
+		return definitions.Float32
+	case types.Float64:
+		return definitions.Float64
+	case types.Complex64:
+		return definitions.Complex64
+	case types.Complex128:
+		return definitions.Complex128
+	case types.String:
+		return definitions.String
+	case types.Bool:
+		return definitions.Bool
+	default:
+		return definitions.Nil
+	}
 }
 
 func (t *TableTree) isOfTimeType(x types.Type) bool {

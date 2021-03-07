@@ -10,14 +10,16 @@ install-ci-deps:
 	go install honnef.co/go/tools/cmd/staticcheck && \
 	go install github.com/securego/gosec/cmd/gosec && \
 	go get -u -v github.com/ory/go-acc && \
-	go get -u -v github.com/axw/gocov/gocov
+	go get -u -v github.com/axw/gocov/gocov && \
+	go get github.com/fzipp/gocyclo/cmd/gocyclo && \
+	go get -u github.com/client9/misspell/cmd/misspell
 
 
 install-packages:
 	go get -u -v ./... && go mod download -x && go mod tidy -v && go mod verify
 
 checker: 
-	staticcheck ./... && go vet ./...  && gosec -exclude=G101,G404 ./...
+	staticcheck ./... && go vet ./...  && gosec -exclude=G101,G404 ./... && gocyclo . && misspell . 
 
 run-tests:
 	go-acc -o coverage.txt ./... -- -timeout 10m && \
