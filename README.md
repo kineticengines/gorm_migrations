@@ -28,6 +28,8 @@
     <img src="https://badgen.net/github/license/kineticengines/gormgx" alt="License" />
 </a>
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/kineticengines/gormgx)](https://goreportcard.com/report/github.com/kineticengines/gormgx)
+
 <br>
 
 ### A simple database migrations utility for Gorm
