@@ -45,3 +45,5 @@ gormgx.go -v make-migrations
 ## Gotchas
 
 - Models specifications should be in one (1) go file. Preferably `models.go`
+- Override Foreign Key must be of the form `ModelNameRefer`.
+- Foreign key must be `Interface{}`. Gormgx will extract the extact model from the tags

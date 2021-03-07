@@ -9,6 +9,7 @@ type Config struct {
 	Migrations   string   `yaml:"migrations"`
 	Models       []string `yaml:"models"`
 	AddGormModel bool     `yaml:"add_gorm_model"`
+	TimeZone     string   `yaml:"time_zone"`
 }
 
 // Model is a same model as defines in `gorm.Model`

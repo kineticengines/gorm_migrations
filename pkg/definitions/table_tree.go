@@ -59,8 +59,12 @@ func (t *TableTree) addNodesHelper(u *types.Struct, numOfFields int, index int) 
 func (t *TableTree) computeBasicType(u types.Type) BasicType {
 	switch x := u.(type) {
 	case *types.Struct:
-		if t.isOfTimeType(x) || t.isOfNullableTimeType(x) {
+		if t.isOfTimeType(x) {
 			return Time
+		}
+
+		if t.isOfNullableTimeType(x) {
+			return NullTime
 		}
 		return Compound
 	case *types.Pointer:

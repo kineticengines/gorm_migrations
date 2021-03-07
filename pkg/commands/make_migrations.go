@@ -25,7 +25,7 @@ var MakeMigrationCmd = &cli.Command{
 		dir, _ := os.Getwd()
 		configPath = filepath.Join(dir, definitions.GormgxYamlFileName)
 		verbose := c.Bool("v")
-		return NewMgxMaker(configPath, engine.NewRunner(), verbose).Migrate()
+		return NewMgxMaker(configPath, verbose).Migrate()
 	},
 }
 
@@ -53,9 +53,14 @@ type MgxMaker struct {
 }
 
 // NewMgxMaker ...
-func NewMgxMaker(path string, runner definitions.Worker, verbose bool) MakeMigration {
-	return &MgxMaker{modelsPath: path, verbose: verbose, errorsCache: &sync.Map{}, runner: runner,
-		modelsPkgs: &[]*types.Package{}, tables: map[string]*definitions.TableTree{}}
+func NewMgxMaker(path string, verbose bool) MakeMigration {
+	return &MgxMaker{
+		modelsPath:  path,
+		verbose:     verbose,
+		errorsCache: &sync.Map{},
+		runner:      engine.NewRunner(),
+		modelsPkgs:  &[]*types.Package{},
+		tables:      map[string]*definitions.TableTree{}}
 }
 
 // Migrate ...
@@ -163,7 +168,7 @@ func (m *MgxMaker) createMigrationFiles() (MakeMigration, error) {
 			wg.Add(1)
 			go func(w *sync.WaitGroup, tn string, tt *definitions.TableTree, mgx *MgxMaker) {
 				defer wg.Done()
-				if err := migrator.NewMigratorWorker(tn, tt, m.verbose).RunIntialIntent(); err != nil {
+				if err := migrator.NewMigratorWorker(tn, tt, mgx.verbose, mgx.runner).RunIntialIntent(); err != nil {
 					m.errorsCache.Store(errorKey, err)
 				}
 
