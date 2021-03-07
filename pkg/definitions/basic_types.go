@@ -23,5 +23,7 @@ const (
 	String     BasicType = "string"
 	Compound   BasicType = "compound"
 	Time       BasicType = "time"
+	NullTime   BasicType = "nulltime"
+	Bytes      BasicType = "bytes"
 	Nil        BasicType = "nil"
 )

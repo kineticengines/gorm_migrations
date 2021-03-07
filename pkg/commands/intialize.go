@@ -33,6 +33,9 @@ models:
 # Optional: set to add "gorm.Model" to your models
 add_gorm_model: true
 
+# Optional : set the time zone for time.Time fields. Defaults to "Africa/Nairobi"
+time_zone: Africa/Nairobi
+
 `))
 
 type initializor struct {
