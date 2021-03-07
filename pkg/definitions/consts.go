@@ -12,6 +12,7 @@ const (
 	GormgxYamlFileName      = "gormgx.yaml"
 	IntialMigrationFileName = "00001_init.gormgx"
 	DefaultMIgrationsPath   = "migrations"
+	GormModelInterfaceFile  = "pkg/definitions/gorm_model.go"
 )
 
 // commands
@@ -53,8 +54,8 @@ const (
 	// IntialIntent ...
 	IntialIntent Intent = iota
 
-	// CreateIntent ...
-	CreateIntent
+	// AfterIntialIntent ...
+	AfterIntialIntent
 )
 
 // response message
