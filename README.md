@@ -53,3 +53,8 @@ gormgx.go -v make-migrations
 ```sh
 export DATABASE_DSN="host=localhost user=gorm password=gorm dbname=gorm port=9920 sslmode=disable TimeZone=Africa/Nairobi"
 ```
+
+
+## Notice
+
+Gormgx is still in development and not ready for productive use yet
