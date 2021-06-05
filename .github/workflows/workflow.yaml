@@ -10,9 +10,9 @@ jobs:
         ref: ${{ github.event.pull_request.head.sha }}
 
     - name: run CI
-      uses: cedrickring/golang-action@1.6.0
+      uses: cedrickring/golang-action@1.7.0
       with:
-        args: make install-ci-deps && make install-packages && make checker && make run-tests
+        args: make ci
       env:
         GO111MODULE: "on"       
 
